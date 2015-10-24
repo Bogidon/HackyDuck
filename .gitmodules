@@ -1,0 +1,6 @@
+[submodule "HackyDuck"]
+	path = HackyDuck
+	url = git@github.com:Bogidon/HackyDuck.git
+[submodule "6502js"]
+	path = 6502js
+	url = https://github.com/skilldrick/6502js.git
