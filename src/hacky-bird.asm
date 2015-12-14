@@ -157,7 +157,7 @@ shouldStopPipeGeneration:
     rts
     
 stopPipeGeneration:
-    br
+    brk
 
 checkPipeCollision:
     lda duckP
