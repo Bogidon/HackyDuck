@@ -1,0 +1,212 @@
+<!doctype html>
+<html>
+  <head>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <title>6502 assembler/simulator</title>
+  </head>
+  <body>
+
+    <div class="widget">
+      <div class="buttons">
+        <input type="button" value="Assemble" class="assembleButton" />
+        <input type="button" value="Run" class="runButton" />
+        <input type="button" value="Reset" class="resetButton" />
+        <input type="button" value="Hexdump" class="hexdumpButton" />
+        <input type="button" value="Disassemble" class="disassembleButton" />
+        <input type="button" value="Notes" class="notesButton" />
+      </div>
+
+      <textarea class="code">
+      
+    jsr init  ;jump to subroutine init
+    jmp loop  ;jump to subroutine loop
+
+init: 
+    jsr initDuck        ;jump to subroutine initDuckf
+    jsr generatePipe    ;jump to subroutine generatePipe
+    rts
+
+  
+initDuck:
+    ;start the duck in the middle of the screen
+    
+    ;initial direction (2 => down)
+    lda #2
+    sta $02
+    
+    ;initial duck position
+    lda #$07    ;pixel
+    sta $0505 
+    lda #$04    ;strip
+    sta $01
+    rts         ;return
+    
+drawDuck:
+    lda #$07
+    sta $0505 
+    rts   
+    
+duckMover:
+    inc $0505 
+    jmp drawDuck
+    
+keyHandler:
+ lda $ff        ;load the value of the latest keypress from address $ff into register A
+ cmp #$77       ;compare value in register A to hex $77 (W)
+ beq duckMover      ;Branch On Equal, to upKey
+ rts
+  
+generatePipe:
+    ;generate pipe length
+    
+    lda $fe ;load a random number between 0 and 255 from address $fe into register A
+    
+    ;AND: logical AND with accumulator. Apply logical AND with hex $03 to value in
+    ;register A. Hex 07 is binary 00000111, so only the two least significant bits
+    ;are kept, resulting in a value between 0 (bin 00000000) and 7 (bin 00000111).
+    ;Add 5 to the result, giving a random value between 5 and 12
+    and #$07        ;mask out lowest 2 bits
+    clc             ;clear carry flag 
+    adc #5          ;add to register A, using carry bit for overflow.
+    sta $04  ;store value of y coordinate from register A into address $01
+    
+    lda #5
+    ldx #$00
+
+generateInitialPipePositions:
+    sta $05ff
+    jsr shouldStopPipeGeneration
+    sta $05df
+    jsr shouldStopPipeGeneration
+    sta $05bf
+    jsr shouldStopPipeGeneration
+    sta $059f
+    jsr shouldStopPipeGeneration
+    sta $057f
+    jsr shouldStopPipeGeneration
+    sta $055f
+    jsr shouldStopPipeGeneration
+    sta $053f
+    jsr shouldStopPipeGeneration
+    sta $051f
+    jsr shouldStopPipeGeneration
+    sta $04ff
+    jsr shouldStopPipeGeneration
+    sta $04df
+    jsr shouldStopPipeGeneration
+    sta $04bf
+    jsr shouldStopPipeGeneration
+    sta $049f
+    jsr shouldStopPipeGeneration
+    
+shouldStopPipeGeneration:
+    inx
+    cpx $04
+    beq stopPipeGeneration
+    rts
+    
+stopPipeGeneration:
+    brk
+
+checkPipeCollision:
+    lda $0505 
+    cmp $03
+    bne doneCheckingPipeCollision
+    lda $01
+    cmp $04
+    beq doneCheckingPipeCollision 
+    rts ; if no collision
+
+doneCheckingPipeCollision:
+    jmp gameOver
+    
+gameOver:
+    jmp loop ;ends it all
+    
+
+pipePixels:
+    dcb $ff,$df,$bf,$9f,$7f,$5f,$3f,$1f,$ff,$df,$bf,$9f
+    
+pipeStrips:
+    dcb $05,$05,$05,$05,$05,$05,$05,$05,$04,$04,$04,$04
+
+loop:
+    jsr checkPipeCollision
+    jsr keyHandler
+    jsr drawDuck
+    jmp loop
+    
+    
+    
+;    ldx #0
+
+;draw:
+
+;lda #1
+;sta (pipePixels,x)
+;inx 
+;cpx #11
+;bne draw
+
+;pipePixels:
+;dcw $05ff,$05df,$05bf,$059f,$057f,$055f,$053f,$051f,$04ff,$04df,$04bf,$049f
+
+;pipeStrips:
+;dcb $05,$05,$05,$05,$05,$05,$05,$05,$04,$04,$04,$04
+      </textarea>
+
+      <canvas class="screen" width="160" height="160"></canvas>
+
+      <div class="debugger">
+        <input type="checkbox" class="debug" name="debug" />
+        <label for="debug">Debugger</label>
+        <div class="minidebugger"></div>
+        <div class="buttons">
+          <input type="button" value="Step" class="stepButton" />
+          <input type="button" value="Jump to ..." class="gotoButton" />
+        </div>
+      </div>
+
+      <div class="monitorControls">
+        <label for="monitoring">Monitor</label>
+        <input type="checkbox" class="monitoring" name="monitoring" />
+
+        <label for="start">Start: $</label>
+        <input type="text" value="0" class="start" name="start" />
+        <label for="length">Length: $</label>
+        <input type="text" value="ff" class="length" name="length" />
+      </div>
+      <div class="monitor"><pre><code></code></pre></div>
+      <div class="messages"><pre><code></code></pre></div>
+
+      <div class="notes" style="display: none">Notes:
+
+Memory location $fe contains a new random byte on every instruction.
+Memory location $ff contains the ascii code of the last key pressed.
+
+Memory locations $200 to $5ff map to the screen pixels. Different values will
+draw different colour pixels. The colours are:
+
+$0: Black
+$1: White
+$2: Red
+$3: Cyan
+$4: Purple
+$5: Green
+$6: Blue
+$7: Yellow
+$8: Orange
+$9: Brown
+$a: Light red
+$b: Dark grey
+$c: Grey
+$d: Light green
+$e: Light blue
+$f: Light grey
+    </div>
+
+    <script src="es5-shim.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="assembler.js"></script>
+  </body>
+</html>
