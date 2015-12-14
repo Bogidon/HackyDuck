@@ -1,10 +1,10 @@
 ; Flap wings with key W
 
-; $00-01    => screen location of Duck, stored as two bytes, where the first
+; $00-01	=> screen location of Duck, stored as two bytes, where the first
 ;           byte is the pixel and the second is the strip.
-; $02       => direction    ; 1 => up   (bin 0001)
-                            ; 2 => down (bin 0010)
-; $03-??    => pipe pixels (in byte pairs)
+; $02 		=> direction	; 1 => up	(bin 0001)
+        				 	; 2 => down	(bin 0010)
+; $03-??	=> pipe pixels (in byte pairs)
 
 ;The screens is divided in 8 strips of 8x32 "pixels". Each strip
 ;is stored in a page, having their own most significant byte. Each
@@ -48,15 +48,15 @@
 ;32 |                                                          |
 ;   ------------------------------------------------------------
 
-define duckP            $0505 ;screen location of duck, pixel
-define duckS            $01 ;screen location of duck, strip
-define duckDirection    $02 ;direction (possible values are below)
-define pipeStart        $03 ;start of pipe byte pairs
+define duckP			$0505 ;screen location of duck, pixel
+define duckS			$01 ;screen location of duck, strip
+define duckDirection	$02 ;direction (possible values are below)
+define pipeStart		$03 ;start of pipe byte pairs
 define pipeLength       $04 ;pipe length, in bytes (possible variance of high and low pipes)
 
 ; Directions (each using a separate bit)
-define movingUp     1
-define movingDown   2
+define movingUp		1
+define movingDown	2
 
 ; ASCII values of keys controlling the duck flight
 define ASCII_w      $77
@@ -69,28 +69,28 @@ define sysLastKey   $ff
 define duckColor    $07
 define pipeColor    $0d
 
-    jsr init  ;jump to subroutine init
-    jmp loop  ;jump to subroutine loop
+	jsr init  ;jump to subroutine init
+	jmp loop  ;jump to subroutine loop
 
 init: 
-    jsr initDuck        ;jump to subroutine initDuck
-    jsr generatePipe    ;jump to subroutine generatePipe
-    rts
+	jsr initDuck        ;jump to subroutine initDuck
+	jsr generatePipe	;jump to subroutine generatePipe
+	rts
 
   
 initDuck:
-    ;start the duck in the middle of the screen
-    
-    ;initial direction (2 => down)
-    lda #movingDown
-    sta duckDirection
-    
-    ;initial duck position
-    lda #$07    ;pixel
-    sta duckP
-    lda #$04    ;strip
-    sta duckS
-    rts         ;return
+	;start the duck in the middle of the screen
+	
+	;initial direction (2 => down)
+	lda #movingDown
+	sta duckDirection
+	
+	;initial duck position
+	lda #$07	;pixel
+	sta duckP
+	lda #$04	;strip
+	sta duckS
+    rts			;return
     
 drawDuck:
     lda #$07
